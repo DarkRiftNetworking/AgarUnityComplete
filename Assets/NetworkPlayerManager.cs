@@ -19,7 +19,7 @@ public class NetworkPlayerManager : MonoBehaviour
 
     Dictionary<uint, AgarObject> networkPlayers = new Dictionary<uint, AgarObject>();
 
-    public void Start()
+    public void Awake()
     {
         client.Subscribe(MOVEMENT_TAG, MovementMessageReceived);
     }
