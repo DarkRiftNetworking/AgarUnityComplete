@@ -22,7 +22,7 @@ public class FoodManager : MonoBehaviour
 
     Dictionary<uint, AgarObject> food = new Dictionary<uint, AgarObject>();
 
-    void Start()
+    void Awake()
     {
         client.Subscribe(FOOD_TAG, MessageReceived);
     }
