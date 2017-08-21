@@ -24,17 +24,20 @@ public class FoodManager : MonoBehaviour
 
     void Awake()
     {
-        client.Subscribe(FOOD_TAG, MessageReceived);
+        client.MessageReceived += MessageReceived;
     }
 
     void MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        TagSubjectMessage message = (TagSubjectMessage)e.Message;
+        TagSubjectMessage message = e.Message as TagSubjectMessage;
 
-        if (message.Subject == SPAWN_SUBJECT)
-            SpawnFood(sender, e);
-        else if (message.Subject == MOVE_SUBJECT)
-            MoveFood(sender, e);
+        if (message != null && message.Tag == FOOD_TAG)
+        {
+            if (message.Subject == SPAWN_SUBJECT)
+                SpawnFood(sender, e);
+            else if (message.Subject == MOVE_SUBJECT)
+                MoveFood(sender, e);
+        }
     }
 
     void SpawnFood(object sender, MessageReceivedEventArgs e)

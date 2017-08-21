@@ -48,17 +48,20 @@ public class PlayerSpawner : MonoBehaviour
             Application.Quit();
         }
 
-        client.Subscribe(SPAWN_TAG, SpawnTagHandler);
+        client.MessageReceived += MessageReceived;
     }
 
-    void SpawnTagHandler(object sender, MessageReceivedEventArgs e)
+    void MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        TagSubjectMessage message = (TagSubjectMessage)e.Message;
+        TagSubjectMessage message = e.Message as TagSubjectMessage;
 
-        if (message.Subject == SPAWN_SUBJECT)
-            SpawnPlayer(sender, e);
-        else
-            DespawnPlayer(sender, e);
+        if (message != null && message.Tag == SPAWN_TAG)
+        {
+            if (message.Subject == SPAWN_SUBJECT)
+                SpawnPlayer(sender, e);
+            else
+                DespawnPlayer(sender, e);
+        }
     }
 
     void SpawnPlayer(object sender, MessageReceivedEventArgs e)

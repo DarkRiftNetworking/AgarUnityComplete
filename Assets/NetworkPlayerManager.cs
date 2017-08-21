@@ -21,25 +21,30 @@ public class NetworkPlayerManager : MonoBehaviour
 
     public void Awake()
     {
-        client.Subscribe(MOVEMENT_TAG, MovementMessageReceived);
+        client.MessageReceived += MessageReceived;
     }
 
-    void MovementMessageReceived(object sender, MessageReceivedEventArgs e)
+    void MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        DarkRiftReader reader = e.Message.GetReader();
+        TagSubjectMessage message = e.Message as TagSubjectMessage;
 
-        uint id = reader.ReadUInt32();
-
-        switch (((TagSubjectMessage)e.Message).Subject)
+        if (message != null && message.Tag == MOVEMENT_TAG)
         {
-            case MOVE_SUBJECT:
-                Vector3 newPosition = new Vector3(reader.ReadSingle(), reader.ReadSingle(), 0);
-                networkPlayers[id].SetMovePosition(newPosition);
-                break;
+            DarkRiftReader reader = e.Message.GetReader();
 
-            case RADIUS_SUBJECT:
-                networkPlayers[id].SetRadius(reader.ReadSingle());
-                break;
+            uint id = reader.ReadUInt32();
+
+            switch (message.Subject)
+            {
+                case MOVE_SUBJECT:
+                    Vector3 newPosition = new Vector3(reader.ReadSingle(), reader.ReadSingle(), 0);
+                    networkPlayers[id].SetMovePosition(newPosition);
+                    break;
+
+                case RADIUS_SUBJECT:
+                    networkPlayers[id].SetRadius(reader.ReadSingle());
+                    break;
+            }
         }
     }
 
