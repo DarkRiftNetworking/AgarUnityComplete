@@ -29,65 +29,68 @@ public class FoodManager : MonoBehaviour
 
     void MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        TagSubjectMessage message = e.Message as TagSubjectMessage;
-
-        if (message != null && message.Tag == FOOD_TAG)
+        using (TagSubjectMessage message = e.GetMessage() as TagSubjectMessage)
         {
-            if (message.Subject == SPAWN_SUBJECT)
-                SpawnFood(sender, e);
-            else if (message.Subject == MOVE_SUBJECT)
-                MoveFood(sender, e);
+            if (message != null && message.Tag == FOOD_TAG)
+            {
+                if (message.Subject == SPAWN_SUBJECT)
+                    SpawnFood(sender, e);
+                else if (message.Subject == MOVE_SUBJECT)
+                    MoveFood(sender, e);
+            }
         }
     }
 
     void SpawnFood(object sender, MessageReceivedEventArgs e)
     {
-        DarkRiftReader reader = e.Message.GetReader();
-
-        if (reader.Length % 15 != 0)
+        using (DarkRiftReader reader = e.GetMessage().GetReader())
         {
-            Debug.LogWarning("Received malformed spawn packet.");
-            return;
-        }
+            if (reader.Length % 15 != 0)
+            {
+                Debug.LogWarning("Received malformed spawn packet.");
+                return;
+            }
 
-        while (reader.Position < reader.Length)
-        {
-            uint id = reader.ReadUInt32();
-            Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle());
-            Color32 color = new Color32(
-                reader.ReadByte(),
-                reader.ReadByte(),
-                reader.ReadByte(),
-                255
-            );
+            while (reader.Position < reader.Length)
+            {
+                uint id = reader.ReadUInt32();
+                Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle());
+                Color32 color = new Color32(
+                    reader.ReadByte(),
+                    reader.ReadByte(),
+                    reader.ReadByte(),
+                    255
+                );
 
-            Debug.Log("Spawning food with ID = " + id + ".");
+                Debug.Log("Spawning food with ID = " + id + ".");
 
-            GameObject obj = Instantiate(foodPrefab, position, Quaternion.identity) as GameObject;
+                GameObject obj = Instantiate(foodPrefab, position, Quaternion.identity) as GameObject;
 
-            AgarObject agarObj = obj.GetComponent<AgarObject>();
+                AgarObject agarObj = obj.GetComponent<AgarObject>();
 
-            agarObj.SetRadius(0.2f);
-            agarObj.SetColor(color);
+                agarObj.SetRadius(0.2f);
+                agarObj.SetColor(color);
 
-            food.Add(id, agarObj);
+                food.Add(id, agarObj);
+            }
         }
     }
 
     void MoveFood(object sender, MessageReceivedEventArgs e)
     {
-        DarkRiftReader reader = e.Message.GetReader();
-
-        if (reader.Length % 12 != 0)
+        using (DarkRiftReader reader = e.GetMessage().GetReader())
         {
-            Debug.LogWarning("Received malformed spawn packet.");
-            return;
+            if (reader.Length % 12 != 0)
+            {
+                Debug.LogWarning("Received malformed spawn packet.");
+                return;
+            }
+
+            uint id = reader.ReadUInt32();
+            Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle());
+
+            if (food.ContainsKey(id))
+                food[id].transform.position = position;
         }
-
-        uint id = reader.ReadUInt32();
-        Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle());
-
-        if (food.ContainsKey(id))
-            food[id].transform.position = position;
     }
 }

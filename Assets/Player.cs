@@ -25,13 +25,14 @@ public class Player : MonoBehaviour
     {
         if (Vector3.Distance(lastPosition, transform.position) > moveDistance)
         {
-            DarkRiftWriter writer = new DarkRiftWriter();
-            writer.Write(transform.position.x);
-            writer.Write(transform.position.y);
+            using (DarkRiftWriter writer = DarkRiftWriter.Create())
+            {
+                writer.Write(transform.position.x);
+                writer.Write(transform.position.y);
 
-            TagSubjectMessage message = new TagSubjectMessage(MOVEMENT_TAG, MOVE_SUBJECT, writer);
-
-            Client.SendMessage(message, SendMode.Unreliable);
+                using (TagSubjectMessage message = TagSubjectMessage.Create(MOVEMENT_TAG, MOVE_SUBJECT, writer))
+                    Client.SendMessage(message, SendMode.Unreliable);
+            }
 
             lastPosition = transform.position;
         }

@@ -53,69 +53,71 @@ public class PlayerSpawner : MonoBehaviour
 
     void MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        TagSubjectMessage message = e.Message as TagSubjectMessage;
-
-        if (message != null && message.Tag == SPAWN_TAG)
+        using (TagSubjectMessage message = e.GetMessage() as TagSubjectMessage)
         {
-            if (message.Subject == SPAWN_SUBJECT)
-                SpawnPlayer(sender, e);
-            else
-                DespawnPlayer(sender, e);
+            if (message != null && message.Tag == SPAWN_TAG)
+            {
+                if (message.Subject == SPAWN_SUBJECT)
+                    SpawnPlayer(sender, e);
+                else
+                    DespawnPlayer(sender, e);
+            }
         }
     }
 
     void SpawnPlayer(object sender, MessageReceivedEventArgs e)
     {
-        DarkRiftReader reader = e.Message.GetReader();
-
-        if (reader.Length % 19 != 0)
+        using (Message message = e.GetMessage())
+        using (DarkRiftReader reader = message.GetReader())
         {
-            Debug.LogWarning("Received malformed spawn packet.");
-            return;
-        }
-
-        while (reader.Position < reader.Length)
-        {
-            uint id = reader.ReadUInt32();
-            Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle());
-            float radius = reader.ReadSingle();
-            Color32 color = new Color32(
-                reader.ReadByte(), 
-                reader.ReadByte(), 
-                reader.ReadByte(),
-                255
-            );
-
-            Debug.Log("Spawning client for ID = " + id + ".");
-
-            GameObject obj;
-            if (id == client.ID)
+            if (reader.Length % 19 != 0)
             {
-                obj = Instantiate(controllablePrefab, position, Quaternion.identity) as GameObject;
-
-                Player player = obj.GetComponent<Player>();
-                player.Client = client;
-
-                Camera.main.GetComponent<CameraFollow>().Target = obj.transform;
-            }
-            else
-            {
-                obj = Instantiate(networkPrefab, position, Quaternion.identity) as GameObject;
+                Debug.LogWarning("Received malformed spawn packet.");
+                return;
             }
 
-            AgarObject agarObj = obj.GetComponent<AgarObject>();
+            while (reader.Position < reader.Length)
+            {
+                uint id = reader.ReadUInt32();
+                Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle());
+                float radius = reader.ReadSingle();
+                Color32 color = new Color32(
+                    reader.ReadByte(),
+                    reader.ReadByte(),
+                    reader.ReadByte(),
+                    255
+                );
 
-            agarObj.SetRadius(radius);
-            agarObj.SetColor(color);
+                Debug.Log("Spawning client for ID = " + id + ".");
 
-            networkPlayerManager.Add(id, agarObj);
+                GameObject obj;
+                if (id == client.ID)
+                {
+                    obj = Instantiate(controllablePrefab, position, Quaternion.identity) as GameObject;
+
+                    Player player = obj.GetComponent<Player>();
+                    player.Client = client;
+
+                    Camera.main.GetComponent<CameraFollow>().Target = obj.transform;
+                }
+                else
+                {
+                    obj = Instantiate(networkPrefab, position, Quaternion.identity) as GameObject;
+                }
+
+                AgarObject agarObj = obj.GetComponent<AgarObject>();
+
+                agarObj.SetRadius(radius);
+                agarObj.SetColor(color);
+
+                networkPlayerManager.Add(id, agarObj);
+            }
         }
     }
 
     void DespawnPlayer(object sender, MessageReceivedEventArgs e)
     {
-        DarkRiftReader reader = e.Message.GetReader();
-
-        networkPlayerManager.DestroyPlayer(reader.ReadUInt32());
+        using (DarkRiftReader reader = e.GetMessage().GetReader())
+            networkPlayerManager.DestroyPlayer(reader.ReadUInt32());
     }
 }
