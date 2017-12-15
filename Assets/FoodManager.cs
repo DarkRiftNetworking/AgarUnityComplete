@@ -8,10 +8,6 @@ using DarkRift;
 
 public class FoodManager : MonoBehaviour
 {
-    const byte FOOD_TAG = 2;
-    const ushort SPAWN_SUBJECT = 0;
-    const ushort MOVE_SUBJECT = 1;
-
     [SerializeField]
     [Tooltip("The DarkRift client to communicate on.")]
     UnityClient client;
@@ -29,21 +25,19 @@ public class FoodManager : MonoBehaviour
 
     void MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        using (TagSubjectMessage message = e.GetMessage() as TagSubjectMessage)
+        using (Message message = e.GetMessage())
         {
-            if (message != null && message.Tag == FOOD_TAG)
-            {
-                if (message.Subject == SPAWN_SUBJECT)
-                    SpawnFood(sender, e);
-                else if (message.Subject == MOVE_SUBJECT)
-                    MoveFood(sender, e);
-            }
+            if (message.Tag == Tags.SpawnFoodTag)
+                SpawnFood(sender, e);
+            if (message.Tag == Tags.MoveFoodTag)
+                MoveFood(sender, e);
         }
     }
 
     void SpawnFood(object sender, MessageReceivedEventArgs e)
     {
-        using (DarkRiftReader reader = e.GetMessage().GetReader())
+        using (Message message = e.GetMessage())
+        using (DarkRiftReader reader = message.GetReader())
         {
             if (reader.Length % 15 != 0)
             {
@@ -78,7 +72,8 @@ public class FoodManager : MonoBehaviour
 
     void MoveFood(object sender, MessageReceivedEventArgs e)
     {
-        using (DarkRiftReader reader = e.GetMessage().GetReader())
+        using (Message message = e.GetMessage())
+        using (DarkRiftReader reader = message.GetReader())
         {
             if (reader.Length % 12 != 0)
             {

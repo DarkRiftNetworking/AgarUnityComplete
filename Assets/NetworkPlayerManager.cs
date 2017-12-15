@@ -8,11 +8,6 @@ using DarkRift;
 
 public class NetworkPlayerManager : MonoBehaviour
 {
-    const byte MOVEMENT_TAG = 1;
-
-    const ushort MOVE_SUBJECT = 0;
-    const ushort RADIUS_SUBJECT = 1;
-
     [SerializeField]
     [Tooltip("The DarkRift client to communicate on.")]
     UnityClient client;
@@ -26,25 +21,25 @@ public class NetworkPlayerManager : MonoBehaviour
 
     void MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        using (TagSubjectMessage message = e.GetMessage() as TagSubjectMessage)
+        using (Message message = e.GetMessage() as Message)
         {
-            if (message != null && message.Tag == MOVEMENT_TAG)
+            if (message.Tag == Tags.MovePlayerTag)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    uint id = reader.ReadUInt32();
+                    
+                    Vector3 newPosition = new Vector3(reader.ReadSingle(), reader.ReadSingle(), 0);
+                    networkPlayers[id].SetMovePosition(newPosition);
+                }
+            }
+            else if (message.Tag == Tags.SetRadiusTag)
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
                     uint id = reader.ReadUInt32();
 
-                    switch (message.Subject)
-                    {
-                        case MOVE_SUBJECT:
-                            Vector3 newPosition = new Vector3(reader.ReadSingle(), reader.ReadSingle(), 0);
-                            networkPlayers[id].SetMovePosition(newPosition);
-                            break;
-
-                        case RADIUS_SUBJECT:
-                            networkPlayers[id].SetRadius(reader.ReadSingle());
-                            break;
-                    }
+                    networkPlayers[id].SetRadius(reader.ReadSingle());
                 }
             }
         }

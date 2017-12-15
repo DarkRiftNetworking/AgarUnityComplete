@@ -5,9 +5,6 @@ using DarkRift;
 
 public class Player : MonoBehaviour
 {
-    const byte MOVEMENT_TAG = 1;
-    const ushort MOVE_SUBJECT = 0;
-
     [SerializeField]
     [Tooltip("The distance we can move before we send a position update.")]
     float moveDistance = 0.05f;
@@ -30,7 +27,7 @@ public class Player : MonoBehaviour
                 writer.Write(transform.position.x);
                 writer.Write(transform.position.y);
 
-                using (TagSubjectMessage message = TagSubjectMessage.Create(MOVEMENT_TAG, MOVE_SUBJECT, writer))
+                using (Message message = Message.Create(Tags.MovePlayerTag, writer))
                     Client.SendMessage(message, SendMode.Unreliable);
             }
 

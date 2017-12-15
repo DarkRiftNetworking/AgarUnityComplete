@@ -7,11 +7,6 @@ using DarkRift;
 
 public class PlayerSpawner : MonoBehaviour
 {
-    const byte SPAWN_TAG = 0;
-
-    const ushort SPAWN_SUBJECT = 0;
-    const ushort DESPAWN_SUBJECT = 1;
-
     [SerializeField]
     [Tooltip("The DarkRift client to communicate on.")]
     UnityClient client;
@@ -53,15 +48,12 @@ public class PlayerSpawner : MonoBehaviour
 
     void MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        using (TagSubjectMessage message = e.GetMessage() as TagSubjectMessage)
+        using (Message message = e.GetMessage() as Message)
         {
-            if (message != null && message.Tag == SPAWN_TAG)
-            {
-                if (message.Subject == SPAWN_SUBJECT)
-                    SpawnPlayer(sender, e);
-                else
-                    DespawnPlayer(sender, e);
-            }
+            if (message.Tag == Tags.SpawnPlayerTag)
+                SpawnPlayer(sender, e);
+            else if (message.Tag == Tags.DespawnPlayerTag)
+                DespawnPlayer(sender, e);
         }
     }
 
@@ -117,7 +109,8 @@ public class PlayerSpawner : MonoBehaviour
 
     void DespawnPlayer(object sender, MessageReceivedEventArgs e)
     {
-        using (DarkRiftReader reader = e.GetMessage().GetReader())
+        using (Message message = e.GetMessage())
+        using (DarkRiftReader reader = message.GetReader())
             networkPlayerManager.DestroyPlayer(reader.ReadUInt32());
     }
 }
