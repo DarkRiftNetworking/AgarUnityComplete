@@ -62,7 +62,7 @@ public class PlayerSpawner : MonoBehaviour
         using (Message message = e.GetMessage())
         using (DarkRiftReader reader = message.GetReader())
         {
-            if (reader.Length % 19 != 0)
+            if (reader.Length % 17 != 0)
             {
                 Debug.LogWarning("Received malformed spawn packet.");
                 return;
@@ -70,7 +70,7 @@ public class PlayerSpawner : MonoBehaviour
 
             while (reader.Position < reader.Length)
             {
-                uint id = reader.ReadUInt32();
+                ushort id = reader.ReadUInt16();
                 Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle());
                 float radius = reader.ReadSingle();
                 Color32 color = new Color32(
@@ -111,6 +111,6 @@ public class PlayerSpawner : MonoBehaviour
     {
         using (Message message = e.GetMessage())
         using (DarkRiftReader reader = message.GetReader())
-            networkPlayerManager.DestroyPlayer(reader.ReadUInt32());
+            networkPlayerManager.DestroyPlayer(reader.ReadUInt16());
     }
 }

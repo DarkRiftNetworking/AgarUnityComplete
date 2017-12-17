@@ -16,7 +16,7 @@ public class FoodManager : MonoBehaviour
     [Tooltip("The food item prefab.")]
     GameObject foodPrefab;
 
-    Dictionary<uint, AgarObject> food = new Dictionary<uint, AgarObject>();
+    Dictionary<ushort, AgarObject> food = new Dictionary<ushort, AgarObject>();
 
     void Awake()
     {
@@ -39,7 +39,7 @@ public class FoodManager : MonoBehaviour
         using (Message message = e.GetMessage())
         using (DarkRiftReader reader = message.GetReader())
         {
-            if (reader.Length % 15 != 0)
+            if (reader.Length % 13 != 0)
             {
                 Debug.LogWarning("Received malformed spawn packet.");
                 return;
@@ -47,7 +47,7 @@ public class FoodManager : MonoBehaviour
 
             while (reader.Position < reader.Length)
             {
-                uint id = reader.ReadUInt32();
+                ushort id = reader.ReadUInt16();
                 Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle());
                 Color32 color = new Color32(
                     reader.ReadByte(),
@@ -75,13 +75,13 @@ public class FoodManager : MonoBehaviour
         using (Message message = e.GetMessage())
         using (DarkRiftReader reader = message.GetReader())
         {
-            if (reader.Length % 12 != 0)
+            if (reader.Length % 10 != 0)
             {
-                Debug.LogWarning("Received malformed spawn packet.");
+                Debug.LogWarning("Received malformed move packet.");
                 return;
             }
 
-            uint id = reader.ReadUInt32();
+            ushort id = reader.ReadUInt16();
             Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle());
 
             if (food.ContainsKey(id))
