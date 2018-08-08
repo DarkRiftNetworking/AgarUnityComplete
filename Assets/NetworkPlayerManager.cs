@@ -30,7 +30,9 @@ public class NetworkPlayerManager : MonoBehaviour
                     ushort id = reader.ReadUInt16();
                     
                     Vector3 newPosition = new Vector3(reader.ReadSingle(), reader.ReadSingle(), 0);
-                    networkPlayers[id].SetMovePosition(newPosition);
+                    
+                    if (networkPlayers.ContainsKey(id))
+                        networkPlayers[id].SetMovePosition(newPosition);
                 }
             }
             else if (message.Tag == Tags.SetRadiusTag)
@@ -39,7 +41,8 @@ public class NetworkPlayerManager : MonoBehaviour
                 {
                     ushort id = reader.ReadUInt16();
 
-                    networkPlayers[id].SetRadius(reader.ReadSingle());
+                    if (networkPlayers.ContainsKey(id))
+                        networkPlayers[id].SetRadius(reader.ReadSingle());
                 }
             }
         }
